@@ -1,0 +1,54 @@
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+long int sum_tensao = 0;
+int i = 0;
+
+const int Rf1 = 1889, Rf2 = 910, Rf3 = 472;
+float P = 0.0;
+const float resp = 0.434;
+const int btn5  = 1,
+          btn10 = 2,
+          btn20 = 3;
+
+int Rf = Rf1;
+
+void Clear(){
+  lcd.clear();
+  lcd.setCursor(0,0); lcd.print("Tensao: ");
+  lcd.setCursor(0,1); lcd.print("Pot: ");
+}
+
+void setup() {
+  pinMode(btn5,  INPUT_PULLUP);
+  pinMode(btn10, INPUT_PULLUP);
+  pinMode(btn20, INPUT_PULLUP);
+  lcd.init();
+  lcd.backlight();
+  Clear();
+  delay(500);
+}
+
+void loop() {
+  sum_tensao += analogRead(A3);
+  if(digitalRead(btn5) == LOW) Rf = Rf1;
+  else if(digitalRead(btn10) == LOW) Rf = Rf2;
+  else if(digitalRead(btn20) == LOW) Rf = Rf3;
+
+  if(i == 2000){
+    float vs = (sum_tensao / 2000) * 5 / 1023.0;
+    P = vs / (Rf * resp) * 1000;
+    lcd.setCursor(8,0);
+    lcd.print(vs, 3);
+    lcd.print("V");
+    lcd.setCursor(5,1); lcd.print(P, 3);
+    if(P < 9) lcd.print("mW ");
+    else lcd.print("mW");
+    sum_tensao = 0;
+    i = 0;
+  }
+  i++;
+}
+
