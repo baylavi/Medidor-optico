@@ -1,0 +1,47 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+  
+  lcd.setCursor(0,0);
+  lcd.print("Iniciando...");
+  delay(1000);
+  lcd.clear();
+}
+
+void loop() {
+
+  int valor_analog = analogRead(A0);        
+  float V = (valor_analog * 5) / 1023.0; 
+  float pot = (V / (0.434 * 1800))*1000;   
+
+  Serial.print("valor analog: ");
+  Serial.print(valor_analog);
+  Serial.print("   -   ");  
+//                                        --------------- potencia serial ---------------
+  Serial.print("pot: ");
+  Serial.print(pot, 3);
+  Serial.println("mW  -  ");
+//                                        ---------------- tensão Serial ----------------
+    Serial.print("Tensao: ");
+    Serial.print(V,3);
+    Serial.println("V  -  ");
+//                                        ---------------- tensão lcd -------------------
+  lcd.setCursor(0,0);
+  lcd.print("Tensao: ");
+    lcd.print(V, 3);
+    lcd.print("V ");
+  
+//                                        ----------------- potencia lcd ----------------
+  lcd.setCursor(0,1);
+  lcd.print("Pot: ");
+  lcd.print(pot, 3); 
+  lcd.print("mW   ");
+
+  delay(500);
+}
