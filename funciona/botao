@@ -1,0 +1,77 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Pinos da chave seletora (um para cada posição)
+const int chaveOFF = 2;
+const int chave1800 = 3;
+const int chave910  = 4;
+const int chave470  = 5;
+
+float resistor = 0.0;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(chaveOFF, INPUT_PULLUP);
+  pinMode(chave1800, INPUT_PULLUP);
+  pinMode(chave910, INPUT_PULLUP);
+  pinMode(chave470, INPUT_PULLUP);
+
+  lcd.setCursor(0,0);
+  lcd.print("Iniciando...");
+  delay(1000);
+  lcd.clear();
+}
+
+void loop() {
+  int valor_analog = analogRead(A0);        
+  float V = (valor_analog * 5.0) / 1023.0;
+
+  // Seleção do resistor conforme chave
+  if (digitalRead(chaveOFF) == LOW) resistor = 0;       // desligado
+  else if (digitalRead(chave1800) == LOW) resistor = 1800.0;
+  else if (digitalRead(chave910) == LOW)  resistor = 910.0;
+  else if (digitalRead(chave470) == LOW)  resistor = 470.0;
+
+  lcd.setCursor(0,0);
+
+  if (resistor == 0) {
+    // Se estiver desligado, mostra OFF
+    lcd.print("Sistema OFF     ");
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    Serial.println("Sistema OFF");
+  } else {
+    // Cálculo da potência
+    float pot = (V / (0.434 * resistor)) * 1000.0;
+
+    // Serial
+    Serial.print("Resistor: ");
+    Serial.print(resistor,0);
+    Serial.print(" ohms - ");
+    Serial.print("Tensao: ");
+    Serial.print(V,3);
+    Serial.print(" V - ");
+    Serial.print("Pot: ");
+    Serial.print(pot,3);
+    Serial.println(" mW");
+
+    // LCD
+    lcd.print("Tensao: ");
+    lcd.print(V, 3);
+    lcd.print("V   ");
+
+    lcd.setCursor(0,1);
+    lcd.print("R=");
+    lcd.print(resistor,0);
+    lcd.print(" Pot:");
+    lcd.print(pot, 2);
+    lcd.print("mW  ");
+  }
+
+  delay(500);
+}
